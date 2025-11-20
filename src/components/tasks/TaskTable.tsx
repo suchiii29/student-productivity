@@ -15,6 +15,14 @@ const TaskTable = ({ tasks, onToggleTask }: TaskTableProps) => {
     return priorityOrder[a.priority] - priorityOrder[b.priority];
   });
 
+  // Safely format deadline
+  const getFormattedDeadline = (deadline: string) => {
+    if (!deadline) return "No deadline";
+    const date = new Date(deadline);
+    if (isNaN(date.getTime())) return "No deadline";
+    return format(date, "MMM dd, yyyy");
+  };
+
   return (
     <div className="rounded-lg border border-border bg-card">
       <Table>
@@ -38,12 +46,19 @@ const TaskTable = ({ tasks, onToggleTask }: TaskTableProps) => {
                   onCheckedChange={() => onToggleTask(task.id)}
                 />
               </TableCell>
+
               <TableCell className="font-medium">{task.title}</TableCell>
+
               <TableCell>
                 <Badge variant="outline">{task.category}</Badge>
               </TableCell>
-              <TableCell>{format(task.deadline, "MMM dd, yyyy")}</TableCell>
+
+              <TableCell>
+                {getFormattedDeadline(task.deadline)}
+              </TableCell>
+
               <TableCell>{task.duration} min</TableCell>
+
               <TableCell>
                 <Badge
                   variant={
@@ -57,6 +72,7 @@ const TaskTable = ({ tasks, onToggleTask }: TaskTableProps) => {
                   {task.priority}
                 </Badge>
               </TableCell>
+
               <TableCell>
                 <Badge variant={task.status === "completed" ? "default" : "outline"}>
                   {task.status}
