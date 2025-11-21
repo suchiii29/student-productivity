@@ -1,4 +1,4 @@
-# welcome to my app  AI-Based Student Productivity & Routine Optimizer  
+# hello welcome to my app  AI-Based Student Productivity & Routine Optimizer  
 **A Modern Notion-Style Productivity Dashboard for Students — Built with React, Tailwind CSS & Firebase**
 
 This project is developed for the **Hackathon 2025** as a smart solution to improve student productivity using routine tracking, intelligent scheduling, and AI-driven recommendations.
