@@ -1,86 +1,88 @@
+import { useEffect, useState } from "react";
+import { getTasks } from "@/lib/taskStore";
+import { prioritizeTasks } from "@/lib/aiPrioritizer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lightbulb, Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Lightbulb } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-interface Recommendation {
+interface RecommendedTask {
   id: string;
   title: string;
-  description: string;
-  reason: string;
+  aiScore: number;
+  category?: string;
+  deadline?: string;
+  duration?: number;
+  priority?: string;
 }
 
-const recommendations: Recommendation[] = [
-  {
-    id: "1",
-    title: "Schedule critical tasks between 7–9 PM",
-    description: "Your highest focus period is 7–9 PM. This is the optimal time for complex problem-solving and math-related work.",
-    reason: "Based on 30 days of productivity data, your concentration peaks during evening hours with 92% task completion rate.",
-  },
-  {
-    id: "2",
-    title: "Avoid heavy study sessions between 3–4 PM",
-    description: "Your productivity significantly drops during mid-afternoon. Consider light tasks or breaks during this time.",
-    reason: "Analysis shows 45% lower focus scores and increased error rates during 3-4 PM across multiple subjects.",
-  },
-  {
-    id: "3",
-    title: "Increase sleep duration to 7-8 hours",
-    description: "Your performance drops when sleeping less than 6 hours. Aim for consistent 7-8 hour sleep cycles.",
-    reason: "Correlation analysis reveals 35% better task completion and 50% fewer errors with adequate sleep.",
-  },
-  {
-    id: "4",
-    title: "Take scheduled breaks every 90 minutes",
-    description: "Implement the 90-20 rule: 90 minutes of focused work followed by 20-minute breaks for optimal performance.",
-    reason: "Your longest productive sessions last 85-95 minutes before focus deteriorates. Regular breaks maintain consistency.",
-  },
-  {
-    id: "5",
-    title: "Morning study sessions for memorization",
-    description: "Schedule memorization-heavy subjects (languages, history) between 8-10 AM when retention is highest.",
-    reason: "Morning sessions show 28% better long-term retention compared to afternoon or evening study periods.",
-  },
-];
-
 const Recommendations = () => {
+  const [recommended, setRecommended] = useState<RecommendedTask[]>([]);
+
+  useEffect(() => {
+    try {
+      const tasks = getTasks() || [];
+      console.log("TASKS DEBUG ->", tasks);
+
+      const ranked = prioritizeTasks(tasks) || [];
+      setRecommended(ranked);
+    } catch (err) {
+      console.error("AI PRIORITIZER ERROR:", err);
+      setRecommended([]);
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
+      {/* Title */}
       <div>
-        <h2 className="text-3xl font-bold text-foreground">AI Recommendations</h2>
+        <h2 className="text-3xl font-bold text-foreground">AI Task Prioritizer</h2>
         <p className="text-muted-foreground mt-1">
-          Personalized suggestions based on your productivity patterns
+          Smart ordering of your pending tasks based on urgency, duration, priority & deadlines.
         </p>
       </div>
 
-      <div className="space-y-4">
-        {recommendations.map((rec) => (
-          <Card key={rec.id} className="hover:border-primary/50 transition-colors">
-            <CardHeader>
-              <CardTitle className="flex items-start gap-3 text-lg">
-                <Lightbulb className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                <span>{rec.title}</span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-4 w-4 text-muted-foreground ml-auto cursor-help shrink-0" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p className="text-sm">{rec.reason}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{rec.description}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Empty state */}
+      {recommended.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground text-lg">
+            🎉 You have completed all tasks. Nothing to prioritize!
+          </p>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {recommended.map((task, index) => (
+            <Card
+              key={task.id}
+              className="hover:border-primary/50 transition-colors"
+            >
+              <CardHeader>
+                <CardTitle className="flex items-start gap-3 text-lg">
+                  <Lightbulb className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <span>
+                    #{index + 1} — {task.title}
+                  </span>
+                  <Badge variant="secondary" className="ml-auto">
+                    AI Score: {Math.round(task.aiScore)}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
 
+              <CardContent className="text-sm space-y-1 text-muted-foreground">
+                {task.category && <p><strong>Category:</strong> {task.category}</p>}
+                {task.deadline && <p><strong>Deadline:</strong> {task.deadline}</p>}
+                {task.duration && <p><strong>Duration:</strong> {task.duration} mins</p>}
+                {task.priority && <p><strong>Priority:</strong> {task.priority}</p>}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Footer info */}
       <Card className="bg-muted/50 border-dashed">
         <CardContent className="pt-6">
           <p className="text-sm text-center text-muted-foreground">
-            Recommendations update weekly based on your logged activities and task completions.
-            Keep logging your routines for more accurate insights.
+            Task priority updates automatically whenever new tasks are added or completed.
           </p>
         </CardContent>
       </Card>

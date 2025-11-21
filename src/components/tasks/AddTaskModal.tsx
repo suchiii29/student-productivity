@@ -1,88 +1,86 @@
+// src/components/tasks/AddTaskModal.tsx
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Task } from "@/pages/Tasks";
-import { useToast } from "@/hooks/use-toast";
 
-interface AddTaskModalProps {
+interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddTask: (task: Omit<Task, "id">) => void;
 }
 
-const AddTaskModal = ({ open, onOpenChange, onAddTask }: AddTaskModalProps) => {
-  const { toast } = useToast();
+export default function AddTaskModal({ open, onOpenChange, onAddTask }: Props) {
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<Task["category"]>("Study");
+  const [category, setCategory] = useState<"Study" | "Health" | "Personal">("Study");
   const [deadline, setDeadline] = useState("");
-  const [duration, setDuration] = useState("");
-  const [priority, setPriority] = useState<Task["priority"]>("Medium");
+  const [startTime, setStartTime] = useState<string | null>(null);
+  const [endTime, setEndTime] = useState<string | null>(null);
+  const [duration, setDuration] = useState<number | "">("");
+  const [priority, setPriority] = useState<"High" | "Medium" | "Low">("Medium");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!deadline) {
-      toast({
-        title: "Error",
-        description: "Deadline is required for all tasks",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    onAddTask({
-      title,
-      category,
-      deadline: new Date(deadline),
-      duration: parseInt(duration),
-      priority,
-      status: "pending",
-    });
-
-    // Reset form
+  const reset = () => {
     setTitle("");
     setCategory("Study");
     setDeadline("");
+    setStartTime(null);
+    setEndTime(null);
     setDuration("");
     setPriority("Medium");
+  };
 
-    toast({
-      title: "Task Added",
-      description: "Your task has been successfully added",
-    });
+  const submit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!title.trim()) return alert("Enter a title");
+
+    let dur = typeof duration === "number" && duration > 0 ? duration : undefined;
+    if (!dur && startTime && endTime) {
+      const [sh, sm] = startTime.split(":").map(Number);
+      const [eh, em] = endTime.split(":").map(Number);
+      let s = sh * 60 + sm;
+      let e = eh * 60 + em;
+      if (e <= s) e += 24 * 60;
+      dur = e - s;
+    }
+    if (!dur) dur = 60;
+
+    const newTask: Omit<Task, "id"> = {
+      title,
+      category,
+      deadline,
+      duration: dur,
+      priority,
+      status: "pending",
+      startTime,
+      endTime,
+    };
+
+    onAddTask(newTask);
+    onOpenChange(false);
+    reset();
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Add New Task</DialogTitle>
-          <DialogDescription>
-            Create a new task with all required details. Deadline is mandatory.
-          </DialogDescription>
+          <DialogTitle>Add Task (with time)</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Task Title</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Complete Math Assignment"
-                required
-              />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select value={category} onValueChange={(value: Task["category"]) => setCategory(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+        <form onSubmit={submit} className="space-y-4 py-2">
+          <div>
+            <Label>Title</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Category</Label>
+              <Select value={category} onValueChange={(v) => setCategory(v as any)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Study">Study</SelectItem>
                   <SelectItem value="Health">Health</SelectItem>
@@ -90,36 +88,10 @@ const AddTaskModal = ({ open, onOpenChange, onAddTask }: AddTaskModalProps) => {
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="deadline">Deadline *</Label>
-              <Input
-                id="deadline"
-                type="date"
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="duration">Duration (minutes)</Label>
-              <Input
-                id="duration"
-                type="number"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                placeholder="e.g., 60"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
-              <Select value={priority} onValueChange={(value: Task["priority"]) => setPriority(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+            <div>
+              <Label>Priority</Label>
+              <Select value={priority} onValueChange={(v) => setPriority(v as any)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="High">High</SelectItem>
                   <SelectItem value="Medium">Medium</SelectItem>
@@ -128,16 +100,37 @@ const AddTaskModal = ({ open, onOpenChange, onAddTask }: AddTaskModalProps) => {
               </Select>
             </div>
           </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label>Start time</Label>
+              <Input type="time" value={startTime ?? ""} onChange={(e) => setStartTime(e.target.value)} />
+            </div>
+            <div>
+              <Label>End time</Label>
+              <Input type="time" value={endTime ?? ""} onChange={(e) => setEndTime(e.target.value)} />
+            </div>
+            <div>
+              <Label>Duration (min)</Label>
+              <Input
+                type="number"
+                value={duration === "" ? "" : String(duration)}
+                onChange={(e) => setDuration(e.target.value ? Number(e.target.value) : "")}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label>Deadline (optional)</Label>
+            <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+          </div>
+
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => { onOpenChange(false); reset(); }}>Cancel</Button>
             <Button type="submit">Add Task</Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default AddTaskModal;
+}

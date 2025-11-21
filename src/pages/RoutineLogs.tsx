@@ -1,65 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RoutineLogModal from "@/components/routine/RoutineLogModal";
 import { format } from "date-fns";
-
-export interface RoutineLog {
-  id: string;
-  date: Date;
-  wakeTime: string;
-  sleepTime: string;
-  studyHours: number;
-  exercise: number;
-  breaks: number;
-  classTimings: string;
-}
-
-const mockLogs: RoutineLog[] = [
-  {
-    id: "1",
-    date: new Date(2025, 11, 20),
-    wakeTime: "06:30",
-    sleepTime: "22:30",
-    studyHours: 6,
-    exercise: 45,
-    breaks: 4,
-    classTimings: "9:00-12:00, 14:00-16:00",
-  },
-  {
-    id: "2",
-    date: new Date(2025, 11, 19),
-    wakeTime: "07:00",
-    sleepTime: "23:00",
-    studyHours: 5,
-    exercise: 30,
-    breaks: 3,
-    classTimings: "9:00-12:00, 14:00-16:00",
-  },
-];
+import { db } from "@/firebase";
+import { ref, onValue } from "firebase/database";
+import { RoutineEntry } from "@/lib/routineStore";
 
 const RoutineLogs = () => {
-  const [logs, setLogs] = useState<RoutineLog[]>(mockLogs);
+  const [logs, setLogs] = useState<RoutineEntry[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleAddLog = (log: Omit<RoutineLog, "id">) => {
-    const newLog = {
-      ...log,
-      id: Math.random().toString(36).substr(2, 9),
-    };
-    setLogs([newLog, ...logs]);
-    setIsModalOpen(false);
-  };
+  // Fetch logs live from Firebase
+  useEffect(() => {
+    const logsRef = ref(db, "routineLogs");
+    onValue(logsRef, (snapshot) => {
+      if (!snapshot.exists()) return setLogs([]);
+      const arr = Object.entries(snapshot.val()).map(([id, data]: any) => ({
+        id,
+        ...data,
+      }));
+      setLogs(arr.reverse());
+    });
+  }, []);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-foreground">Routine Logs</h2>
-          <p className="text-muted-foreground mt-1">Track your daily routines and habits</p>
+          <p className="text-muted-foreground mt-1">
+            Track daily habits & productivity
+          </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="gap-2">
+        <Button className="gap-2" onClick={() => setIsModalOpen(true)}>
           <Plus className="h-4 w-4" />
           Add Log
         </Button>
@@ -69,44 +44,37 @@ const RoutineLogs = () => {
         {logs.map((log) => (
           <Card key={log.id}>
             <CardHeader>
-              <CardTitle className="text-lg">{format(log.date, "MMMM dd, yyyy")}</CardTitle>
+              <CardTitle>{format(new Date(log.date), "MMMM dd, yyyy")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Wake Time</p>
-                  <p className="font-medium">{log.wakeTime}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Sleep Time</p>
-                  <p className="font-medium">{log.sleepTime}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Study Hours</p>
-                  <p className="font-medium">{log.studyHours}h</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Exercise</p>
-                  <p className="font-medium">{log.exercise} min</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Breaks</p>
-                  <p className="font-medium">{log.breaks}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Class Timings</p>
-                  <p className="font-medium">{log.classTimings}</p>
-                </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4">
+                <div><p className="text-muted-foreground">Sleep Hours</p><p>{log.sleepHours} h</p></div>
+                <div><p className="text-muted-foreground">Study Hours</p><p>{log.studyHours} h</p></div>
+                <div><p className="text-muted-foreground">Exercise</p><p>{log.exerciseMinutes} min</p></div>
+                <div><p className="text-muted-foreground">Breaks</p><p>{log.breaks}</p></div>
+              </div>
+
+              <div className="p-4 border rounded-md bg-muted/40">
+                <p className="text-sm font-semibold">
+                  Productivity Score:{" "}
+                  <span className="text-primary">{log.score}/100</span>
+                </p>
+                <p className="text-sm">
+                  Verdict: <span className="font-medium">{log.verdict}</span>
+                </p>
+                <p className="text-xs italic text-muted-foreground mt-1">
+                  💡 {log.recommendation}
+                </p>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
+      {/* 🔥 MODAL — no onAddLog prop anymore */}
       <RoutineLogModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
-        onAddLog={handleAddLog}
       />
     </div>
   );

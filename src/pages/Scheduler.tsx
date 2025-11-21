@@ -1,6 +1,27 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RefreshCw, Plus, Pencil, Trash2 } from "lucide-react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { firestore } from "@/firebase";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface TimeBlock {
   id: string;
@@ -10,7 +31,7 @@ interface TimeBlock {
   suggested?: boolean;
 }
 
-const schedule: TimeBlock[] = [
+const defaultSchedule: TimeBlock[] = [
   { id: "1", time: "06:30 - 07:00", task: "Morning Routine", type: "break" },
   { id: "2", time: "07:00 - 08:00", task: "Exercise & Breakfast", type: "exercise" },
   { id: "3", time: "08:00 - 09:00", task: "Language Memorization", type: "study", suggested: true },
@@ -27,6 +48,142 @@ const schedule: TimeBlock[] = [
 ];
 
 const Scheduler = () => {
+  const { uid, isLoggedIn, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+
+  const [schedule, setSchedule] = useState<TimeBlock[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    return new Date().toISOString().split("T")[0];
+  });
+
+  // Dialog states
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null);
+  const [formData, setFormData] = useState({
+    time: "",
+    task: "",
+    type: "study" as "study" | "break" | "class" | "exercise",
+  });
+
+  // Load schedule when user or date changes
+  useEffect(() => {
+    if (authLoading) return;
+    if (uid) {
+      loadSchedule(uid, selectedDate);
+    } else {
+      setLoading(false);
+    }
+  }, [uid, authLoading, selectedDate]);
+
+  const loadSchedule = async (userId: string, date: string) => {
+    setLoading(true);
+    try {
+      const docRef = doc(firestore, "schedules", `${userId}_${date}`);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        setSchedule(docSnap.data().blocks || []);
+      } else {
+        setSchedule(defaultSchedule);
+      }
+    } catch (error) {
+      console.error("Error loading schedule:", error);
+      setSchedule(defaultSchedule);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveSchedule = async (newSchedule: TimeBlock[]) => {
+    if (!uid) return;
+
+    try {
+      const docRef = doc(firestore, "schedules", `${uid}_${selectedDate}`);
+      await setDoc(docRef, {
+        userId: uid,
+        date: selectedDate,
+        blocks: newSchedule,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error saving schedule:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save schedule",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddBlock = () => {
+    setEditingBlock(null);
+    setFormData({ time: "", task: "", type: "study" });
+    setDialogOpen(true);
+  };
+
+  const handleEditBlock = (block: TimeBlock) => {
+    setEditingBlock(block);
+    setFormData({ time: block.time, task: block.task, type: block.type });
+    setDialogOpen(true);
+  };
+
+  const handleDeleteBlock = async (blockId: string) => {
+    const newSchedule = schedule.filter((b) => b.id !== blockId);
+    setSchedule(newSchedule);
+    await saveSchedule(newSchedule);
+    toast({
+      title: "Deleted",
+      description: "Time block removed",
+    });
+  };
+
+  const handleSaveBlock = async () => {
+    if (!formData.time || !formData.task) {
+      toast({
+        title: "Error",
+        description: "Please fill all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let newSchedule: TimeBlock[];
+
+    if (editingBlock) {
+      newSchedule = schedule.map((b) =>
+        b.id === editingBlock.id
+          ? { ...b, time: formData.time, task: formData.task, type: formData.type }
+          : b
+      );
+    } else {
+      const newBlock: TimeBlock = {
+        id: Date.now().toString(),
+        time: formData.time,
+        task: formData.task,
+        type: formData.type,
+      };
+      newSchedule = [...schedule, newBlock];
+    }
+
+    setSchedule(newSchedule);
+    await saveSchedule(newSchedule);
+    setDialogOpen(false);
+    toast({
+      title: editingBlock ? "Updated" : "Added",
+      description: editingBlock ? "Time block updated" : "New time block added",
+    });
+  };
+
+  const handleReschedule = async () => {
+    setSchedule(defaultSchedule);
+    await saveSchedule(defaultSchedule);
+    toast({
+      title: "Schedule Reset",
+      description: "Schedule has been reset to default",
+    });
+  };
+
   const getTypeColor = (type: string) => {
     switch (type) {
       case "study":
@@ -42,6 +199,32 @@ const Scheduler = () => {
     }
   };
 
+  // Calculate stats
+  const calculateHours = (type: string) => {
+    return schedule
+      .filter((b) => b.type === type)
+      .reduce((total, block) => {
+        const match = block.time.match(/(\d{2}):(\d{2})\s*-\s*(\d{2}):(\d{2})/);
+        if (match) {
+          const start = parseInt(match[1]) * 60 + parseInt(match[2]);
+          const end = parseInt(match[3]) * 60 + parseInt(match[4]);
+          return total + (end - start) / 60;
+        }
+        return total;
+      }, 0);
+  };
+
+  const focusTime = calculateHours("study");
+  const breakTime = calculateHours("break");
+
+  if (authLoading || loading) {
+    return <div className="p-6">Loading...</div>;
+  }
+
+  if (!isLoggedIn) {
+    return <div className="p-6">Please log in to view your schedule.</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -51,15 +234,27 @@ const Scheduler = () => {
             AI-optimized daily schedule based on your productivity patterns
           </p>
         </div>
-        <Button variant="outline" className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Reschedule
-        </Button>
+        <div className="flex gap-2">
+          <Input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-auto"
+          />
+          <Button variant="outline" className="gap-2" onClick={handleReschedule}>
+            <RefreshCw className="h-4 w-4" />
+            Reschedule
+          </Button>
+        </div>
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Today's Schedule</CardTitle>
+          <Button size="sm" onClick={handleAddBlock} className="gap-1">
+            <Plus className="h-4 w-4" />
+            Add Block
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -68,7 +263,7 @@ const Scheduler = () => {
                 key={block.id}
                 className={`flex items-center gap-4 p-3 rounded-lg border ${getTypeColor(
                   block.type
-                )} transition-colors`}
+                )} transition-colors group`}
               >
                 <div className="text-sm font-medium text-muted-foreground min-w-[140px]">
                   {block.time}
@@ -84,6 +279,24 @@ const Scheduler = () => {
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground capitalize">{block.type}</div>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={() => handleEditBlock(block)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-destructive"
+                    onClick={() => handleDeleteBlock(block.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -96,7 +309,7 @@ const Scheduler = () => {
             <CardTitle className="text-sm font-medium">Focus Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">6.5 hours</div>
+            <div className="text-2xl font-bold">{focusTime.toFixed(1)} hours</div>
             <p className="text-xs text-muted-foreground">Scheduled study blocks</p>
           </CardContent>
         </Card>
@@ -106,7 +319,7 @@ const Scheduler = () => {
             <CardTitle className="text-sm font-medium">Break Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3 hours</div>
+            <div className="text-2xl font-bold">{breakTime.toFixed(1)} hours</div>
             <p className="text-xs text-muted-foreground">Rest and recovery</p>
           </CardContent>
         </Card>
@@ -121,6 +334,62 @@ const Scheduler = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingBlock ? "Edit Time Block" : "Add Time Block"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="time">Time Range</Label>
+              <Input
+                id="time"
+                placeholder="e.g., 09:00 - 10:00"
+                value={formData.time}
+                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="task">Task Name</Label>
+              <Input
+                id="task"
+                placeholder="e.g., Study Mathematics"
+                value={formData.task}
+                onChange={(e) => setFormData({ ...formData, task: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="type">Type</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value: "study" | "break" | "class" | "exercise") =>
+                  setFormData({ ...formData, type: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="study">Study</SelectItem>
+                  <SelectItem value="break">Break</SelectItem>
+                  <SelectItem value="class">Class</SelectItem>
+                  <SelectItem value="exercise">Exercise</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveBlock}>
+              {editingBlock ? "Update" : "Add"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

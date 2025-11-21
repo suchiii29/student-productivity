@@ -1,4 +1,3 @@
-
 // src/lib/productivityStore.ts
 
 export interface ProductivityEntry {
@@ -6,31 +5,36 @@ export interface ProductivityEntry {
   score: number;
 }
 
-// 📌 Save productivity score for the day
-export function saveDailyProductivity(score: number) {
+/**
+ * Add or subtract productivity points
+ * +10 points when task completed
+ * -5 points when task marked uncompleted
+ */
+export function saveDailyProductivity(completed: boolean) {
   const today = new Date().toISOString().split("T")[0];
 
   const stored = localStorage.getItem("productivity");
   let data: ProductivityEntry[] = stored ? JSON.parse(stored) : [];
 
-  // If today's record already exists → update instead of adding duplicate
+  // find today's record
   const index = data.findIndex((entry) => entry.date === today);
+
+  let scoreChange = completed ? 10 : -5;
+
   if (index !== -1) {
-    data[index].score = score;
+    data[index].score += scoreChange;
   } else {
-    data.push({ date: today, score });
+    data.push({ date: today, score: scoreChange });
   }
 
   localStorage.setItem("productivity", JSON.stringify(data));
 }
 
-// 📌 Get productivity trend for the dashboard
+/** Get last 7 days productivity for dashboard */
 export function getDailyProductivity(): ProductivityEntry[] {
   const stored = localStorage.getItem("productivity");
   if (!stored) return [];
 
   const data: ProductivityEntry[] = JSON.parse(stored);
-
-  // Keep only last 7 days
   return data.slice(-7);
 }
