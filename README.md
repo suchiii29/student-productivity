@@ -1,73 +1,121 @@
-# Welcome to your Lovable project
+# welcome to my app  AI-Based Student Productivity & Routine Optimizer  
+**A Modern Notion-Style Productivity Dashboard for Students — Built with React, Tailwind CSS & Firebase**
 
-## Project info
+This project is developed for the **Hackathon 2025** as a smart solution to improve student productivity using routine tracking, intelligent scheduling, and AI-driven recommendations.
 
-**URL**: https://lovable.dev/projects/9dcd05e7-a0fe-497e-86a5-077fd8e8c494
+The application helps students:
+- Plan tasks  
+- Track daily routines  
+- Identify high/low focus hours  
+- Make better study schedules  
+- Improve sleep & health consistency  
+- Visualize progress with analytics charts  
 
-## How can I edit this code?
+Designed with a **clean Notion-style UI**, distraction-free layout, and optimized for real-world use.
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## 🚀 Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/9dcd05e7-a0fe-497e-86a5-077fd8e8c494) and start prompting.
+### 🔐 **User Authentication**
+- Login, Signup, and Logout using **Firebase Authentication**
+- Secure email/password-based access
+- User-specific dashboard & data
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+### 📘 **Task Manager**
+- Add, edit, delete tasks  
+- Mandatory deadlines  
+- Auto-sorting based on priority  
+- Status tracking: pending / completed  
+- Categories (Study, Health, Personal)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### ⏱️ **Routine Logging**
+Track daily:
+- Wake/sleep time  
+- Study hours  
+- Exercise time  
+- Breaks  
+- Class timings  
+- Auto-calculated durations  
 
-Follow these steps:
+Stored with timestamps in Firestore.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 🧠 **AI Recommendations Engine**
+A rule-based logic engine that analyzes:
+- High focus hours  
+- Sleep trends  
+- Overdue high-priority tasks  
+- Study patterns  
 
-# Step 3: Install the necessary dependencies.
-npm i
+Generates actionable suggestions such as:
+- “Your highest focus slot is between 7–9 PM.”  
+- “You should sleep earlier — low sleep decreased productivity this week.”  
+- “Reschedule overdue high-priority tasks for tomorrow morning.”
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+### 📅 **Smart Scheduler**
+- Prevents overlapping tasks  
+- Finds ideal time slots  
+- Adds rest breaks  
+- Automatically reschedules delayed tasks  
+- Visual timeline UI (Notion-style)
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+### 📊 **Analytics Dashboard**
+Interactive charts showing:
+- Daily/weekly productivity  
+- Completed vs pending tasks  
+- Study hours trend  
+- Focus hour analysis  
+- Sleep vs productivity correlation  
+- Month-wise progress  
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+### 🔔 **Notifications**
+- Missing routine logs  
+- Deadline nearing alerts  
+- Free 1-hour slot notifications  
+- Low sleep warnings  
 
-This project is built with:
+---
 
-- Vite
+## 🎨 UI/UX Philosophy
+- Clean, minimal, Notion-style interface  
+- Neutral grayscale palette (slate/gray/stone)  
+- Tailwind CSS + shadcn/ui components  
+- Smooth animations and consistent spacing  
+- Accessible, mobile-friendly layout  
+
+---
+
+## 🛠️ Tech Stack
+
+### **Frontend**
+- React (Vite)
 - TypeScript
-- React
-- shadcn-ui
 - Tailwind CSS
+- shadcn/ui
+- Lucide Icons
+- Recharts (for analytics)
 
-## How can I deploy this project?
+### **Backend**
+- Firebase Authentication  
+- Firebase Firestore Database  
+- Firebase Cloud Functions (optional, used for AI logic)
 
-Simply open [Lovable](https://lovable.dev/projects/9dcd05e7-a0fe-497e-86a5-077fd8e8c494) and click on Share -> Publish.
+### **Deployment**
+- Firebase Hosting (optional)
+- Vercel/Netlify compatible
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 📁 Project Structure
