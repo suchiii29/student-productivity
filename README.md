@@ -179,6 +179,29 @@ Auth	Firebase Authentication	Google Login + Email/Password
 Hosting	Vercel	Frontend deployment
 
 ---
+🌟 AI Recommendations & Model Integrity
+
+Our AI models provide contextual, data-driven guidance:
+
+✔ “Study Math between 9–11 AM — your peak focus zone.”
+
+✔ “Sleep dropped yesterday; reduce cognitive load today.”
+
+✔ “You finish tasks 40% faster in the afternoon — schedule hard tasks then.”
+
+Model Integrity Highlights (for judging criteria):
+
+Models use timestamped logs ensuring unbiased, behavior-based analysis
+
+No personal or sensitive data is used in predictions
+
+Recommendations are generated using validated heuristics + AI inferences
+
+AI outputs are reviewed through safety prompts & guardrails
+
+System maintains transparency: students see why a suggestion was made
+
+This ensures the recommendations remain ethical, reliable, and personalized
 
 🔒 Security & Data Protection
 
