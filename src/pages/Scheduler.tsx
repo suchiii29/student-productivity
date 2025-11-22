@@ -1,27 +1,18 @@
+// src/pages/Scheduler.tsx - SMART AI SCHEDULER
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { RefreshCw, Plus, Pencil, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RefreshCw, Plus, Pencil, Trash2, Sparkles, Brain } from "lucide-react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { firestore } from "@/firebase";
+import { firestore, db } from "@/firebase";
+import { ref, onValue } from "firebase/database";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface TimeBlock {
   id: string;
@@ -29,35 +20,31 @@ interface TimeBlock {
   task: string;
   type: "study" | "break" | "class" | "exercise";
   suggested?: boolean;
+  taskId?: string;
 }
 
-const defaultSchedule: TimeBlock[] = [
-  { id: "1", time: "06:30 - 07:00", task: "Morning Routine", type: "break" },
-  { id: "2", time: "07:00 - 08:00", task: "Exercise & Breakfast", type: "exercise" },
-  { id: "3", time: "08:00 - 09:00", task: "Language Memorization", type: "study", suggested: true },
-  { id: "4", time: "09:00 - 12:00", task: "Classes", type: "class" },
-  { id: "5", time: "12:00 - 13:00", task: "Lunch Break", type: "break" },
-  { id: "6", time: "13:00 - 14:00", task: "Light Study Session", type: "study" },
-  { id: "7", time: "14:00 - 16:00", task: "Classes", type: "class" },
-  { id: "8", time: "16:00 - 16:30", task: "Rest Period (Low Energy)", type: "break", suggested: true },
-  { id: "9", time: "16:30 - 18:00", task: "Assignment Work", type: "study" },
-  { id: "10", time: "18:00 - 19:00", task: "Dinner & Break", type: "break" },
-  { id: "11", time: "19:00 - 21:00", task: "Math & Problem Solving", type: "study", suggested: true },
-  { id: "12", time: "21:00 - 22:00", task: "Light Reading", type: "study" },
-  { id: "13", time: "22:00 - 22:30", task: "Night Routine", type: "break" },
-];
+interface Task {
+  id: string;
+  title: string;
+  duration?: number;
+  priority?: string;
+  deadline?: string;
+  category?: string;
+  status?: string;
+}
 
 const Scheduler = () => {
   const { uid, isLoggedIn, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
   const [schedule, setSchedule] = useState<TimeBlock[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => {
     return new Date().toISOString().split("T")[0];
   });
 
-  // Dialog states
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null);
   const [formData, setFormData] = useState({
@@ -65,6 +52,24 @@ const Scheduler = () => {
     task: "",
     type: "study" as "study" | "break" | "class" | "exercise",
   });
+
+  // Load tasks from Firebase
+  useEffect(() => {
+    if (!uid) return;
+
+    const tasksRef = ref(db, `tasks/${uid}`);
+    const unsubscribe = onValue(tasksRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const arr = Array.isArray(data)
+          ? data.filter(Boolean)
+          : Object.entries(data).map(([id, task]: any) => ({ id, ...task }));
+        setTasks(arr);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [uid]);
 
   // Load schedule when user or date changes
   useEffect(() => {
@@ -85,11 +90,10 @@ const Scheduler = () => {
       if (docSnap.exists()) {
         setSchedule(docSnap.data().blocks || []);
       } else {
-        setSchedule(defaultSchedule);
+        setSchedule([]);
       }
     } catch (error) {
       console.error("Error loading schedule:", error);
-      setSchedule(defaultSchedule);
     } finally {
       setLoading(false);
     }
@@ -114,6 +118,142 @@ const Scheduler = () => {
         variant: "destructive",
       });
     }
+  };
+
+  // SMART SCHEDULING ALGORITHM
+  const generateSmartSchedule = () => {
+    setGenerating(true);
+
+    setTimeout(() => {
+      const pendingTasks = tasks.filter(t => t.status !== "completed");
+      const smartSchedule: TimeBlock[] = [];
+      let currentHour = 6; // Start at 6 AM
+      let currentMinute = 30;
+
+      // Helper to format time
+      const formatTime = (hour: number, minute: number) => {
+        return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      };
+
+      // Helper to add time block
+      const addBlock = (duration: number, task: string, type: TimeBlock['type'], taskId?: string, suggested = false) => {
+        const startTime = formatTime(currentHour, currentMinute);
+        
+        // Calculate end time
+        let endMinute = currentMinute + duration;
+        let endHour = currentHour;
+        
+        if (endMinute >= 60) {
+          endHour += Math.floor(endMinute / 60);
+          endMinute = endMinute % 60;
+        }
+
+        const endTime = formatTime(endHour, endMinute);
+
+        smartSchedule.push({
+          id: Date.now().toString() + Math.random(),
+          time: `${startTime} - ${endTime}`,
+          task,
+          type,
+          taskId,
+          suggested,
+        });
+
+        // Update current time
+        currentHour = endHour;
+        currentMinute = endMinute;
+      };
+
+      // 1. Morning Routine (6:30 - 7:00)
+      addBlock(30, "Morning Routine", "break");
+
+      // 2. Exercise & Breakfast (7:00 - 8:00)
+      addBlock(60, "Exercise & Breakfast", "exercise");
+
+      // 3. Peak Morning Hours - Schedule High Priority Tasks (8:00 - 12:00)
+      const morningTasks = pendingTasks
+        .filter(t => t.priority === "High")
+        .slice(0, 2);
+
+      if (morningTasks.length > 0) {
+        morningTasks.forEach(task => {
+          const duration = Math.min(task.duration || 60, 120);
+          addBlock(duration, task.title, "study", task.id, true);
+          
+          // Add 10 min break
+          if (currentHour < 12) {
+            addBlock(10, "Short Break", "break");
+          }
+        });
+      }
+
+      // Fill remaining morning time with study
+      while (currentHour < 12) {
+        addBlock(60, "Study Session", "study", undefined, true);
+      }
+
+      // 4. Lunch Break (12:00 - 13:00)
+      currentHour = 12;
+      currentMinute = 0;
+      addBlock(60, "Lunch Break", "break");
+
+      // 5. Light Study (13:00 - 14:00)
+      addBlock(60, "Light Study Session", "study");
+
+      // 6. Classes (14:00 - 16:00)
+      currentHour = 14;
+      currentMinute = 0;
+      addBlock(120, "Classes / Lectures", "class");
+
+      // 7. Rest Period - Low Energy Time (16:00 - 16:30)
+      addBlock(30, "Rest Period (Low Energy)", "break", undefined, true);
+
+      // 8. Assignment Work (16:30 - 18:00)
+      const mediumPriorityTasks = pendingTasks
+        .filter(t => t.priority === "Medium")
+        .slice(0, 1);
+
+      if (mediumPriorityTasks.length > 0) {
+        const duration = Math.min(mediumPriorityTasks[0].duration || 90, 90);
+        addBlock(duration, mediumPriorityTasks[0].title, "study", mediumPriorityTasks[0].id, true);
+      } else {
+        addBlock(90, "Assignment Work", "study");
+      }
+
+      // 9. Dinner & Break (18:00 - 19:00)
+      currentHour = 18;
+      currentMinute = 0;
+      addBlock(60, "Dinner & Break", "break");
+
+      // 10. Peak Evening Hours - Math & Problem Solving (19:00 - 21:00)
+      const mathTasks = pendingTasks.filter(t => 
+        t.category?.toLowerCase().includes("math") || 
+        t.category?.toLowerCase().includes("problem")
+      ).slice(0, 1);
+
+      if (mathTasks.length > 0) {
+        addBlock(120, mathTasks[0].title, "study", mathTasks[0].id, true);
+      } else {
+        addBlock(120, "Math & Problem Solving", "study", undefined, true);
+      }
+
+      // 11. Light Reading (21:00 - 22:00)
+      addBlock(60, "Light Reading / Review", "study");
+
+      // 12. Night Routine (22:00 - 22:30)
+      currentHour = 22;
+      currentMinute = 0;
+      addBlock(30, "Night Routine", "break");
+
+      setSchedule(smartSchedule);
+      saveSchedule(smartSchedule);
+      setGenerating(false);
+
+      toast({
+        title: "Smart Schedule Generated! 🎯",
+        description: `Created ${smartSchedule.length} optimized time blocks based on your tasks`,
+      });
+    }, 1000);
   };
 
   const handleAddBlock = () => {
@@ -148,6 +288,28 @@ const Scheduler = () => {
       return;
     }
 
+    // Check for overlaps
+    const [startTime, endTime] = formData.time.split("-").map(t => t.trim());
+    const hasOverlap = schedule.some(block => {
+      if (editingBlock && block.id === editingBlock.id) return false;
+      
+      const [blockStart, blockEnd] = block.time.split("-").map(t => t.trim());
+      
+      // Simple overlap check
+      return (startTime >= blockStart && startTime < blockEnd) ||
+             (endTime > blockStart && endTime <= blockEnd) ||
+             (startTime <= blockStart && endTime >= blockEnd);
+    });
+
+    if (hasOverlap) {
+      toast({
+        title: "Time Conflict",
+        description: "This time slot overlaps with another task",
+        variant: "destructive",
+      });
+      return;
+    }
+
     let newSchedule: TimeBlock[];
 
     if (editingBlock) {
@@ -163,7 +325,11 @@ const Scheduler = () => {
         task: formData.task,
         type: formData.type,
       };
-      newSchedule = [...schedule, newBlock];
+      newSchedule = [...schedule, newBlock].sort((a, b) => {
+        const timeA = a.time.split("-")[0].trim();
+        const timeB = b.time.split("-")[0].trim();
+        return timeA.localeCompare(timeB);
+      });
     }
 
     setSchedule(newSchedule);
@@ -172,15 +338,6 @@ const Scheduler = () => {
     toast({
       title: editingBlock ? "Updated" : "Added",
       description: editingBlock ? "Time block updated" : "New time block added",
-    });
-  };
-
-  const handleReschedule = async () => {
-    setSchedule(defaultSchedule);
-    await saveSchedule(defaultSchedule);
-    toast({
-      title: "Schedule Reset",
-      description: "Schedule has been reset to default",
     });
   };
 
@@ -199,7 +356,6 @@ const Scheduler = () => {
     }
   };
 
-  // Calculate stats
   const calculateHours = (type: string) => {
     return schedule
       .filter((b) => b.type === type)
@@ -216,6 +372,9 @@ const Scheduler = () => {
 
   const focusTime = calculateHours("study");
   const breakTime = calculateHours("break");
+  const optimization = schedule.filter(b => b.suggested).length > 0 
+    ? Math.round((schedule.filter(b => b.suggested).length / schedule.length) * 100)
+    : 0;
 
   if (authLoading || loading) {
     return <div className="p-6">Loading...</div>;
@@ -226,10 +385,13 @@ const Scheduler = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-foreground">Smart Scheduler</h2>
+          <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
+            <Brain className="h-8 w-8 text-purple-600" />
+            Smart Scheduler
+          </h2>
           <p className="text-muted-foreground mt-1">
             AI-optimized daily schedule based on your productivity patterns
           </p>
@@ -241,9 +403,23 @@ const Scheduler = () => {
             onChange={(e) => setSelectedDate(e.target.value)}
             className="w-auto"
           />
-          <Button variant="outline" className="gap-2" onClick={handleReschedule}>
-            <RefreshCw className="h-4 w-4" />
-            Reschedule
+          <Button 
+            variant="default" 
+            className="gap-2" 
+            onClick={generateSmartSchedule}
+            disabled={generating}
+          >
+            {generating ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Smart Schedule
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -257,49 +433,60 @@ const Scheduler = () => {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {schedule.map((block) => (
-              <div
-                key={block.id}
-                className={`flex items-center gap-4 p-3 rounded-lg border ${getTypeColor(
-                  block.type
-                )} transition-colors group`}
-              >
-                <div className="text-sm font-medium text-muted-foreground min-w-[140px]">
-                  {block.time}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{block.task}</span>
-                    {block.suggested && (
-                      <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary rounded-full">
-                        Suggested
-                      </span>
-                    )}
+          {schedule.length === 0 ? (
+            <div className="text-center py-12">
+              <Brain className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+              <p className="text-muted-foreground mb-4">No schedule for this day yet</p>
+              <Button onClick={generateSmartSchedule} className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                Generate Smart Schedule
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {schedule.map((block) => (
+                <div
+                  key={block.id}
+                  className={`flex items-center gap-4 p-3 rounded-lg border ${getTypeColor(
+                    block.type
+                  )} transition-colors group`}
+                >
+                  <div className="text-sm font-medium text-muted-foreground min-w-[140px]">
+                    {block.time}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{block.task}</span>
+                      {block.suggested && (
+                        <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                          AI Suggested
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground capitalize">{block.type}</div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      onClick={() => handleEditBlock(block)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => handleDeleteBlock(block.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground capitalize">{block.type}</div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8"
-                    onClick={() => handleEditBlock(block)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-destructive"
-                    onClick={() => handleDeleteBlock(block.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -326,16 +513,15 @@ const Scheduler = () => {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Optimization</CardTitle>
+            <CardTitle className="text-sm font-medium">AI Optimization</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">92%</div>
-            <p className="text-xs text-muted-foreground">Alignment with your peak hours</p>
+            <div className="text-2xl font-bold">{optimization}%</div>
+            <p className="text-xs text-muted-foreground">Smart scheduling applied</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>

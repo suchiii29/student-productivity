@@ -1,0 +1,52 @@
+type User @table {
+  displayName: String!
+  createdAt: Timestamp!
+  email: String
+  photoUrl: String
+}
+
+type Course @table {
+  user: User!
+  name: String!
+  createdAt: Timestamp!
+  code: String
+  description: String
+}
+
+type Task @table {
+  user: User!
+  course: Course!
+  title: String!
+  dueDate: Timestamp!
+  priority: String!
+  status: String!
+  createdAt: Timestamp!
+  description: String
+  estimatedDuration: Int
+}
+
+type StudySession @table {
+  user: User!
+  task: Task
+  startTime: Timestamp!
+  endTime: Timestamp!
+  duration: Int!
+  createdAt: Timestamp!
+  notes: String
+}
+
+type Routine @table {
+  user: User!
+  name: String!
+  createdAt: Timestamp!
+  description: String
+  repeatDays: String
+}
+
+type RoutineActivity @table {
+  routine: Routine!
+  description: String!
+  order: Int!
+  duration: Int!
+  task: Task
+}

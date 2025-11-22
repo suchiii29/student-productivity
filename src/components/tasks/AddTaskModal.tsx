@@ -1,10 +1,25 @@
 // src/components/tasks/AddTaskModal.tsx
+// COMPLETE WORKING VERSION - Copy this entire file
+
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Task } from "@/pages/Tasks";
 
 interface Props {
@@ -34,7 +49,10 @@ export default function AddTaskModal({ open, onOpenChange, onAddTask }: Props) {
 
   const submit = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!title.trim()) return alert("Enter a title");
+    if (!title.trim()) {
+      alert("Please enter a task title");
+      return;
+    }
 
     let dur = typeof duration === "number" && duration > 0 ? duration : undefined;
     if (!dur && startTime && endTime) {
@@ -67,35 +85,48 @@ export default function AddTaskModal({ open, onOpenChange, onAddTask }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Add Task (with time)</DialogTitle>
+          <DialogTitle>Add New Task</DialogTitle>
+          <DialogDescription>
+            Create a new task with time tracking and priority settings.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4 py-2">
           <div>
-            <Label>Title</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
+            <Label htmlFor="task-title">Task Title *</Label>
+            <Input
+              id="task-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., Complete Math Assignment"
+              required
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Category</Label>
+              <Label htmlFor="task-category">Category</Label>
               <Select value={category} onValueChange={(v) => setCategory(v as any)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="task-category">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Study">Study</SelectItem>
-                  <SelectItem value="Health">Health</SelectItem>
-                  <SelectItem value="Personal">Personal</SelectItem>
+                  <SelectItem value="Study">📚 Study</SelectItem>
+                  <SelectItem value="Health">💪 Health</SelectItem>
+                  <SelectItem value="Personal">👤 Personal</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Priority</Label>
+              <Label htmlFor="task-priority">Priority</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as any)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="task-priority">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
+                  <SelectItem value="High">🔴 High</SelectItem>
+                  <SelectItem value="Medium">🟡 Medium</SelectItem>
+                  <SelectItem value="Low">🟢 Low</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -103,30 +134,57 @@ export default function AddTaskModal({ open, onOpenChange, onAddTask }: Props) {
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <Label>Start time</Label>
-              <Input type="time" value={startTime ?? ""} onChange={(e) => setStartTime(e.target.value)} />
-            </div>
-            <div>
-              <Label>End time</Label>
-              <Input type="time" value={endTime ?? ""} onChange={(e) => setEndTime(e.target.value)} />
-            </div>
-            <div>
-              <Label>Duration (min)</Label>
+              <Label htmlFor="start-time">Start Time</Label>
               <Input
+                id="start-time"
+                type="time"
+                value={startTime ?? ""}
+                onChange={(e) => setStartTime(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="end-time">End Time</Label>
+              <Input
+                id="end-time"
+                type="time"
+                value={endTime ?? ""}
+                onChange={(e) => setEndTime(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="duration">Duration (min)</Label>
+              <Input
+                id="duration"
                 type="number"
                 value={duration === "" ? "" : String(duration)}
                 onChange={(e) => setDuration(e.target.value ? Number(e.target.value) : "")}
+                placeholder="60"
+                min="1"
               />
             </div>
           </div>
 
           <div>
-            <Label>Deadline (optional)</Label>
-            <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+            <Label htmlFor="deadline">Deadline (Optional)</Label>
+            <Input
+              id="deadline"
+              type="date"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+            />
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => { onOpenChange(false); reset(); }}>Cancel</Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                onOpenChange(false);
+                reset();
+              }}
+            >
+              Cancel
+            </Button>
             <Button type="submit">Add Task</Button>
           </DialogFooter>
         </form>

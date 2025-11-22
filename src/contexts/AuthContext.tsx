@@ -1,12 +1,14 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, getAuth } from "firebase/auth";
+// src/contexts/AuthContext.tsx
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { onAuthStateChanged, getAuth, User, signOut as firebaseSignOut } from "firebase/auth";
 import { app } from "@/firebase";
 
 interface AuthContextType {
-  user: any;
+  user: User | null;
   uid: string | null;
   isLoggedIn: boolean;
   loading: boolean;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -14,11 +16,16 @@ const AuthContext = createContext<AuthContextType>({
   uid: null,
   isLoggedIn: false,
   loading: true,
+  logout: async () => {},
 });
 
-export const AuthProvider = ({ children }) => {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const auth = getAuth(app);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [uid, setUid] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +36,16 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     });
     return () => unsub();
-  }, []);
+  }, [auth]);
+
+  const logout = async () => {
+    try {
+      await firebaseSignOut(auth);
+    } catch (error) {
+      console.error("Error signing out:", error);
+      throw error;
+    }
+  };
 
   return (
     <AuthContext.Provider
@@ -38,6 +54,7 @@ export const AuthProvider = ({ children }) => {
         uid,
         isLoggedIn: !!user,
         loading,
+        logout,
       }}
     >
       {children}
