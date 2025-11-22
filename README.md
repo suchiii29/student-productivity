@@ -130,6 +130,18 @@ Impact
 Students receive evidence-based insights to improve habits.
 ---
 
+🌟 AI Recommendations Engine
+
+Our AI system gives students contextual suggestions, such as:
+
+✔ “Study Math between 9 AM–11 AM — your peak focus hours.”
+✔ “Sleep dropped to 6 hours yesterday; consider a light study load.”
+✔ “You complete tasks 40% faster in the afternoon — schedule harder tasks there.”
+
+Result:
+
+Students get intelligent, personalized advice instead of generic tips.
+
 🛠 Technology & AI Stack
 
 Category	Technology	Purpose
