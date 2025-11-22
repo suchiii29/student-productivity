@@ -10,10 +10,15 @@ Live Demo → https://student-productivity-topaz.vercel.app
 Traditional student planners are reactive—they only track tasks. Students still struggle with:
 
 🔸 Inefficient study habits
+
 🔸 Burnout & inconsistent routines
+
 🔸 No personalized guidance
+
 🔸 Generic productivity advice
+
 🔸 Not knowing their peak focus hours
+
 There is no intelligent system that studies the student and adjusts the routine for them.
 ---
 💡 Our Solution
@@ -44,7 +49,9 @@ Using continuous logs (Sleep, Study Time, Task Completion), our algorithm detect
 
 Feature
 
+
 ✔ Smart Ranking Algorithm
+
 Tasks are ranked based on:
 
 Urgency
@@ -62,17 +69,24 @@ Students automatically get an optimized task sequence for maximum output.
 2️⃣ Multi-Model AI Smart Scheduling (Gemini-Powered)
 
 Innovation
+
 Uses Google Gemini API to generate a personalized, time-blocked daily schedule.
+
 Feature — AI Smart Scheduler
+
 Inserts study sessions at your peak focus hours
+
 Adds logical breaks
+
 Balances sleep cycles
+
 Adjusts difficulty based on energy levels
 
 
 Impact
 
 Students no longer guess when or how to study —
+
 the AI handles planning automatically.
 ---
 
@@ -85,7 +99,9 @@ Integrated with Groq’s ultra-low-latency inference engine.
 Feature
 
 ✔ Instant homework help
+
 ✔ Concept explanation
+
 ✔ Subject-wise doubt solving
 
 Impact
@@ -99,9 +115,13 @@ Impact
 Includes:
 
 🕒 Hourly Focus Score (when you’re most productive)
+
 📈 Weekly Sleep vs Productivity Graph
+
 📊 Task Completion Rate
+
 🎯 Daily Productivity Score (0–100)
+
 🩺 AI Diagnostics with personalized advice
 
 
@@ -114,11 +134,17 @@ Students receive evidence-based insights to improve habits.
 Category	Technology	Purpose
 
 Frontend	React.js	For dynamic component-based UI
+
 Styling	Tailwind CSS	Fast, responsive, modern dark UI
+
 AI Reasoning	Google Gemini API	Smart scheduler + behavioral insights
+
 AI Chat	Groq (Llama 3.3)	Ultra-fast AI for study assistance
+
 Database	Firebase Firestore	Stores tasks, logs, habits securely
+
 Auth	Firebase Authentication	Google Login + Email/Password
+
 Hosting	Vercel	Frontend deployment
 
 ---
@@ -126,15 +152,19 @@ Hosting	Vercel	Frontend deployment
 🔒 Security & Data Protection
 
 ✔ Firebase Authentication
+
 Secure token-based auth for all users.
 
 ✔ Firestore Rules
+
 Only the authenticated user can access their own data.
 
 ✔ Encryption
+
 All data encrypted at rest and in transit.
 
 ✔ No sensitive user data stored on client
+
 Only productivity logs.
 
 ---
