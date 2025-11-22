@@ -39,7 +39,7 @@ const GoalTracker = () => {
   const { uid } = useAuth();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [progressGoal, setProgressGoal] = useState<Goal | null>(null);
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [progressValue, setProgressValue] = useState("");
 
   // Form state
@@ -83,12 +83,23 @@ const GoalTracker = () => {
     setIsAddOpen(false);
   };
 
-  const handleAddProgress = async () => {
-    if (!uid || !progressGoal || !progressValue) return;
+  const handleAddProgress = async (goalId: string) => {
+    if (!uid || !progressValue) return;
     
-    await addProgress(uid, progressGoal.id, Number(progressValue));
-    setProgressGoal(null);
-    setProgressValue("");
+    const value = Number(progressValue);
+    if (isNaN(value) || value <= 0) {
+      alert("Please enter a valid positive number");
+      return;
+    }
+    
+    try {
+      await addProgress(uid, goalId, value);
+      setSelectedGoalId(null);
+      setProgressValue("");
+    } catch (error) {
+      console.error("Error adding progress:", error);
+      alert("Failed to add progress. Please try again.");
+    }
   };
 
   const handleDeleteGoal = async (goalId: string) => {
@@ -105,6 +116,8 @@ const GoalTracker = () => {
   const getProgressPercent = (goal: Goal) => {
     return Math.min((goal.currentValue / goal.targetValue) * 100, 100);
   };
+
+  const selectedGoal = goals.find(g => g.id === selectedGoalId);
 
   return (
     <div className="space-y-6">
@@ -228,6 +241,52 @@ const GoalTracker = () => {
         </Dialog>
       </div>
 
+      {/* Progress Dialog - Single dialog outside the map */}
+      <Dialog 
+        open={selectedGoalId !== null} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedGoalId(null);
+            setProgressValue("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Progress</DialogTitle>
+          </DialogHeader>
+          {selectedGoal && (
+            <div className="space-y-4 mt-4">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="font-medium mb-1">{selectedGoal.title}</p>
+                <p className="text-sm text-muted-foreground">
+                  Current: {selectedGoal.currentValue} / {selectedGoal.targetValue} {selectedGoal.unit}
+                </p>
+              </div>
+              <Input
+                type="number"
+                placeholder={`Add ${selectedGoal.unit}`}
+                value={progressValue}
+                onChange={e => setProgressValue(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && progressValue) {
+                    handleAddProgress(selectedGoal.id);
+                  }
+                }}
+                autoFocus
+              />
+              <Button 
+                onClick={() => handleAddProgress(selectedGoal.id)} 
+                className="w-full"
+                disabled={!progressValue}
+              >
+                Add Progress
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Goals List */}
       <div className="space-y-3">
         {goals.length === 0 ? (
@@ -277,36 +336,16 @@ const GoalTracker = () => {
 
                   <div className="flex items-center gap-2 ml-4">
                     {goal.status !== "completed" && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => setProgressGoal(goal)}
-                          >
-                            <Plus className="w-3 h-3 mr-1" /> Progress
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Add Progress</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4 mt-4">
-                            <p className="text-sm text-muted-foreground">
-                              Current: {progressGoal?.currentValue || goal.currentValue} / {progressGoal?.targetValue || goal.targetValue} {progressGoal?.unit || goal.unit}
-                            </p>
-                            <Input
-                              type="number"
-                              placeholder={`Add ${goal.unit}`}
-                              value={progressValue}
-                              onChange={e => setProgressValue(e.target.value)}
-                            />
-                            <Button onClick={handleAddProgress} className="w-full">
-                              Add Progress
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedGoalId(goal.id);
+                          setProgressValue("");
+                        }}
+                      >
+                        <Plus className="w-3 h-3 mr-1" /> Progress
+                      </Button>
                     )}
                     <Button 
                       size="sm" 

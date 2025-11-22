@@ -1,7 +1,7 @@
 // src/services/goalService.ts
 
 import { db } from "@/firebase";
-import { ref, push, set, update, remove, onValue, off } from "firebase/database";
+import { ref, push, set, update, remove, onValue, off, get } from "firebase/database";
 
 export interface Goal {
   id: string;
@@ -100,44 +100,59 @@ export const deleteGoal = async (userId: string, goalId: string): Promise<void> 
   await remove(goalRef);
 };
 
-// Add progress to a goal
+// Add progress to a goal - FIXED VERSION
 export const addProgress = async (
   userId: string,
   goalId: string,
   value: number,
   note?: string
 ): Promise<void> => {
+  console.log("addProgress called with:", { userId, goalId, value, note });
+  
+  if (!userId || !goalId || !value) {
+    throw new Error("Missing required parameters");
+  }
+
+  // Get the goal reference
+  const goalRef = getGoalRef(userId, goalId);
+  
+  // Use get() to fetch current goal data once
+  const snapshot = await get(goalRef);
+  
+  if (!snapshot.exists()) {
+    throw new Error("Goal not found");
+  }
+  
+  const goal = snapshot.val() as Goal;
+  console.log("Current goal data:", goal);
+  
+  // Calculate new values
+  const newValue = (goal.currentValue || 0) + value;
+  const isCompleted = newValue >= goal.targetValue;
+  
+  console.log("Calculated values:", { currentValue: goal.currentValue, addedValue: value, newValue, isCompleted });
+  
+  // Save the progress entry
   const progressRef = getProgressRef(userId, goalId);
   const newProgressRef = push(progressRef);
   
   await set(newProgressRef, {
     goalId,
     value,
-    note,
+    note: note || "",
     timestamp: new Date().toISOString(),
   });
-
-  // Update the goal's current value
-  const goalRef = getGoalRef(userId, goalId);
   
-  // Get current goal to calculate new value
-  return new Promise((resolve) => {
-    onValue(goalRef, async (snapshot) => {
-      const goal = snapshot.val();
-      if (goal) {
-        const newValue = (goal.currentValue || 0) + value;
-        const isCompleted = newValue >= goal.targetValue;
-        
-        await update(goalRef, {
-          currentValue: newValue,
-          status: isCompleted ? "completed" : "active",
-          updatedAt: new Date().toISOString(),
-        });
-      }
-      off(goalRef);
-      resolve();
-    }, { onlyOnce: true });
+  console.log("Progress entry saved");
+  
+  // Update the goal's current value and status
+  await update(goalRef, {
+    currentValue: newValue,
+    status: isCompleted ? "completed" : "active",
+    updatedAt: new Date().toISOString(),
   });
+  
+  console.log("Goal updated successfully");
 };
 
 // Subscribe to goal progress

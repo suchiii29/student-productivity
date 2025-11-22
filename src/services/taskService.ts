@@ -1,4 +1,4 @@
-// src/services/taskService.ts
+// src/services/taskService.ts - FIXED VERSION
 // Firebase-based task service (replaces localStorage taskStore.ts)
 
 import { db } from "@/firebase";
@@ -88,12 +88,14 @@ export const updateTask = async (
   
   const updateData: any = { ...updates };
   
-  // Handle completion timestamp
+  // Handle completion timestamp - FIXED
   if (updates.status === "completed") {
     const now = new Date();
     updateData.completedAt = now.toISOString();
     updateData.completedHour = now.getHours();
+    console.log(`Task marked complete at hour: ${now.getHours()}`);
   } else if (updates.status === "pending") {
+    // Clear completion data when marking as pending
     updateData.completedAt = null;
     updateData.completedHour = null;
   }
@@ -107,14 +109,30 @@ export const deleteTask = async (userId: string, taskId: string): Promise<void> 
   await remove(taskRef);
 };
 
-// Toggle task completion
+// Toggle task completion - FIXED
 export const toggleTaskCompletion = async (
   userId: string,
   taskId: string,
   currentStatus: "pending" | "completed"
 ): Promise<void> => {
   const newStatus = currentStatus === "completed" ? "pending" : "completed";
-  await updateTask(userId, taskId, { status: newStatus });
+  const now = new Date();
+  
+  const updates: any = { status: newStatus };
+  
+  // Add timestamp and hour when marking as completed
+  if (newStatus === "completed") {
+    updates.completedAt = now.toISOString();
+    updates.completedHour = now.getHours();
+    console.log(`✅ Task completed at ${now.getHours()}:00 (${now.toISOString()})`);
+  } else {
+    // Clear timestamp when marking as pending
+    updates.completedAt = null;
+    updates.completedHour = null;
+  }
+  
+  const taskRef = getTaskRef(userId, taskId);
+  await update(taskRef, updates);
 };
 
 // Get task statistics

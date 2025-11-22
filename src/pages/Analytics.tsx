@@ -1,8 +1,7 @@
-// src/pages/Analytics.tsx
+// src/pages/Analytics.tsx - TIMEZONE FIX
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Brain, RefreshCw } from "lucide-react";
@@ -23,6 +22,7 @@ interface Task {
   status?: string;
   completedHour?: number;
   duration?: number;
+  completedAt?: string;
 }
 
 const Analytics = () => {
@@ -97,25 +97,86 @@ const Analytics = () => {
     setWeeklyData(data);
   };
 
+  // FIXED: Extract hour from ISO timestamp to avoid timezone conversion
+  const extractHourFromTimestamp = (timestamp: string): number | undefined => {
+    // ISO format: "2025-11-22T18:52:31.297Z"
+    // Extract the hour part (18 in this case)
+    const match = timestamp.match(/T(\d{2}):/);
+    if (match) {
+      const hour = parseInt(match[1], 10);
+      console.log(`🕐 Extracted hour ${hour} from timestamp: ${timestamp}`);
+      return hour;
+    }
+    console.warn(`⚠️ Could not extract hour from: ${timestamp}`);
+    return undefined;
+  };
+
   const generateHourlyData = () => {
-    const hourlyMap: any = {};
-    tasks.filter(t => t.completedHour !== undefined).forEach(task => {
-      const hour = task.completedHour!;
-      if (!hourlyMap[hour]) hourlyMap[hour] = { count: 0, duration: 0 };
-      hourlyMap[hour].count++;
-      hourlyMap[hour].duration += task.duration || 0;
+    const hourlyMap: Record<number, { count: number; duration: number; tasks: string[] }> = {};
+    
+    const completedTasks = tasks.filter(t => t.status === "completed");
+    
+    console.log(`\n🔍 Processing ${completedTasks.length} completed tasks`);
+    
+    completedTasks.forEach(task => {
+      let hour: number | undefined;
+      
+      // PRIORITY 1: Extract directly from ISO timestamp (most reliable)
+      if (task.completedAt) {
+        hour = extractHourFromTimestamp(task.completedAt);
+        if (hour !== undefined) {
+          console.log(`✅ "${task.title}" → Hour ${hour} (from completedAt)`);
+        }
+      }
+      
+      // PRIORITY 2: Use completedHour only if extraction failed AND it's not 0
+      if (hour === undefined && task.completedHour && task.completedHour !== 0) {
+        hour = task.completedHour;
+        console.log(`⚠️ "${task.title}" → Hour ${hour} (from completedHour)`);
+      }
+      
+      // Add to map if we have a valid hour
+      if (hour !== undefined && hour >= 0 && hour < 24) {
+        if (!hourlyMap[hour]) {
+          hourlyMap[hour] = { count: 0, duration: 0, tasks: [] };
+        }
+        hourlyMap[hour].count++;
+        hourlyMap[hour].duration += task.duration || 30;
+        hourlyMap[hour].tasks.push(task.title || "Untitled");
+      } else {
+        console.error(`❌ Skipped "${task.title}" - invalid hour: ${hour}`);
+      }
     });
 
+    console.log("\n📊 Final hourly distribution:", hourlyMap);
+
+    // Build chart data
     const result = [];
-    for (let h = 0; h < 24; h++) {
-      const data = hourlyMap[h] || { count: 0, duration: 0 };
-      result.push({
-        hour: h,
-        label: h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`,
-        focus: data.count * 10 + data.duration / 10,
-        tasksCompleted: data.count,
-      });
+    const hoursWithData = Object.keys(hourlyMap).map(Number).sort((a, b) => a - b);
+    
+    for (const h of hoursWithData) {
+      const data = hourlyMap[h];
+      if (data && data.count > 0) {
+        const focusScore = (data.count * 20) + (data.duration / 5);
+        
+        let label: string;
+        if (h === 0) label = '12 AM';
+        else if (h < 12) label = `${h} AM`;
+        else if (h === 12) label = '12 PM';
+        else label = `${h - 12} PM`;
+        
+        result.push({
+          hour: h,
+          label,
+          focus: Math.round(focusScore),
+          tasksCompleted: data.count,
+          totalMinutes: data.duration,
+          taskList: data.tasks,
+        });
+      }
     }
+    
+    console.log(`\n✨ Generated ${result.length} bars:`, result);
     setHourlyFocus(result);
   };
 
@@ -124,8 +185,8 @@ const Analytics = () => {
     const pending = tasks.filter(t => t.status !== "completed").length;
     const total = tasks.length || 1;
     setTaskCompletion([
-      { name: "Completed", value: Math.round((completed / total) * 100), color: "#10b981" },
-      { name: "Pending", value: Math.round((pending / total) * 100), color: "#f59e0b" },
+      { name: "Completed", value: Math.round((completed / total) * 100), count: completed, color: "#10b981" },
+      { name: "Pending", value: Math.round((pending / total) * 100), count: pending, color: "#f59e0b" },
     ]);
   };
 
@@ -220,8 +281,8 @@ const Analytics = () => {
                           <XAxis dataKey="day" />
                           <YAxis />
                           <Tooltip />
-                          <Line type="monotone" dataKey="productivity" stroke="#8b5cf6" strokeWidth={2} />
-                          <Line type="monotone" dataKey="sleep" stroke="#10b981" strokeWidth={2} />
+                          <Line type="monotone" dataKey="productivity" stroke="#8b5cf6" strokeWidth={2} name="Productivity" />
+                          <Line type="monotone" dataKey="sleep" stroke="#10b981" strokeWidth={2} name="Sleep (hrs)" />
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
@@ -271,21 +332,53 @@ const Analytics = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Hourly Focus Score</CardTitle>
+                  <p className="text-sm text-muted-foreground">Shows hours when you completed tasks (UTC time)</p>
                 </CardHeader>
                 <CardContent>
                   {hourlyFocus.length > 0 ? (
                     <ResponsiveContainer width="100%" height={400}>
-                      <BarChart data={hourlyFocus}>
+                      <BarChart data={hourlyFocus} barCategoryGap="20%">
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="label" />
+                        <XAxis 
+                          dataKey="label"
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                          interval={0}
+                        />
                         <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="focus" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                        <Tooltip 
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="bg-white dark:bg-gray-800 p-3 border rounded-lg shadow-lg">
+                                  <p className="font-semibold">{data.label}</p>
+                                  <p className="text-sm text-purple-600">Tasks: {data.tasksCompleted}</p>
+                                  <p className="text-sm text-gray-600">Focus Score: {Math.round(data.focus)}</p>
+                                  {data.taskList && data.taskList.length > 0 && (
+                                    <div className="mt-2 pt-2 border-t text-xs">
+                                      {data.taskList.map((task: string, i: number) => (
+                                        <p key={i} className="truncate">• {task}</p>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Bar dataKey="focus" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={100} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-                      Complete tasks to see patterns
+                    <div className="h-[400px] flex flex-col items-center justify-center text-center">
+                      <Brain className="w-16 h-16 text-gray-300 mb-4" />
+                      <p className="text-muted-foreground">Complete some tasks to see your focus patterns!</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Mark tasks as completed to track when you're most productive.
+                      </p>
                     </div>
                   )}
                 </CardContent>
