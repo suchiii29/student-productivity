@@ -105,6 +105,13 @@ Secure Login: We utilize Firebase Authentication which employs Google's industry
 Data Isolation: All personal productivity data (Routine Logs, Tasks, Goals) is stored in Firebase Firestore, which is a highly secure, managed service. Data is stored in private collections, ensuring that only the authenticated user has read/write access to their records.
 
 Encrypted Storage: Firestore automatically handles data encryption at rest and in transit, ensuring all behavioral and academic data is protected from external access.
+This is how my database and authentciation looks like -
+<img width="1265" height="593" alt="image" src="https://github.com/user-attachments/assets/3a3fa7d1-6c8b-40a1-98a1-7faf58df7157" />
+<img width="1265" height="593" alt="image" src="https://github.com/user-attachments/assets/64d5f13c-5ef4-4f49-a428-46a4007a0902" />
+<img width="1265" height="593" alt="image" src="https://github.com/user-attachments/assets/69ac0391-aee8-42ac-a501-83561970ce31" />
+
+
+
 
 🚀 Setup and Local Demo
 
@@ -114,7 +121,7 @@ Node.js (v18+)
 
 Installation
 
-Clone the repository: git clone [Your Repository URL Here]
+Clone the repository: git clone https://github.com/suchiii29/student-productivity
 
 Navigate: cd student-productivity-optimizer
 
