@@ -126,6 +126,7 @@ Includes:
 
 
 Impact
+
 Students receive evidence-based insights to improve habits.
 ---
 
@@ -194,7 +195,7 @@ Run: npm run dev
 
 🌐 Live Deployment
 
-Your hosted application:
+Application link :
 👉 https://student-productivity-topaz.vercel.app
 
 Deployed on Vercel with CI/CD → every push to GitHub updates the website automatically.
@@ -202,10 +203,14 @@ Deployed on Vercel with CI/CD → every push to GitHub updates the website autom
 🙌 Acknowledgements
 
 Thanks for reviewing the AI-Based Student Productivity & Routine Optimizer.
+
 This project represents:
 
 Smart automation
+
 Deep analytics
+
 AI-powered human behavior understanding
+
 A new standard for academic productivity
 
