@@ -37,6 +37,24 @@ This transforms any student into a high-performance learner.
 
 🚀 Key Innovations & Features
 ---
+
+📱💻 Cross-Platform Compatibility
+
+The application is fully responsive and works seamlessly on both mobile and laptop/desktop devices.
+The UI automatically adapts using Tailwind CSS responsive layouts to ensure:
+
+Smooth navigation on mobile
+
+Optimized dashboard view on larger screens
+
+Consistent performance across devices
+
+Touch-friendly interactions for mobile users
+
+Whether the student uses a phone or a laptop, the experience remains fast, intuitive, and visually clean.
+
+
+
 1️⃣ Predictive Task Prioritization + Best Performance Timing
 
 Innovation
