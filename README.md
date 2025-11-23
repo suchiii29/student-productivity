@@ -16,9 +16,9 @@
 - [Live Demo](#live-demo)
 - [Future Enhancements](#future-enhancements)
 - [Contributing](#contributing)
-- [Acknowledgements](#acknowledgements)
+  
 
-🎯 The Problem
+The Problem
 
 Traditional student planners are reactive—they only track tasks after students create them. Modern students face critical challenges:
 
@@ -36,7 +36,7 @@ URL: https://student-productivity-topaz.vercel.app
 
 Deployed on: Vercel (Edge Network)
 
-💡 Our Solution
+Our Solution
 
 An AI-powered productivity ecosystem that:
 
@@ -56,7 +56,7 @@ graph LR
     E --> A
 
 Result: Transform any student into a high-performance learner with data-driven optimization.
-🚀 Key Innovations & Features
+Key Innovations & Features
 📱💻 1. Cross-Platform Compatibility
 
 Innovation: Fully responsive design that adapts to any device.
@@ -198,7 +198,7 @@ Advanced Features:
     🎓 Exam Mode: Shifts to intensive revision schedule 1 week before exams
 
 Impact: Intelligent, personalized coaching instead of generic productivity tips.
-🛠 Technology Stack
+Technology Stack
 Frontend Architecture
 
 Layer	Technology	Purpose
@@ -229,7 +229,7 @@ json
   "prettier": "3.x"
 }
 
-🏗 Architecture Overview
+Architecture Overview
 mermaid
 
 graph TB
@@ -263,7 +263,7 @@ Data Flow:
     AI models generate personalized recommendations
     UI updates dynamically with real-time insights
 
-🧠 AI Models & Integrity
+AI Models & Integrity
 Model Selection Rationale
 
 Model	Provider	Selection Criteria	Use Case
@@ -308,7 +308,7 @@ Our system ensures responsible AI usage:
     Continuous A/B testing of recommendations
 
 Result: Trustworthy AI that genuinely helps students improve.
-🔒 Security & Privacy
+Security & Privacy
 Authentication
 javascript
 
@@ -345,7 +345,7 @@ service cloud.firestore {
 }
 
 Key Principle: Zero-trust architecture—every request validated.
-💾 Database Structure(Images)
+Database Structure
 <img width="1280" height="598" alt="image" src="https://github.com/user-attachments/assets/dd14734e-eb52-435f-bae8-bd0cdf02dfd4" />
 <img width="1280" height="598" alt="image" src="https://github.com/user-attachments/assets/b3f3df99-32ef-4d17-94fd-ea3f77e10aac" />
 <img width="1280" height="598" alt="image" src="https://github.com/user-attachments/assets/c49cc017-b07e-4ce6-a597-2d70ec4b3fc3" />
@@ -412,7 +412,7 @@ sequenceDiagram
     User->>Gemini API: Request Schedule
     Gemini API-->>User: Personalized Schedule
 
-🚀 Setup & Installation
+Setup & Installation
 Prerequisites
 bash
 
@@ -476,7 +476,7 @@ First Contentful Paint	1.2s
 Time to Interactive	2.8s
 Accessibility	98/100
 
-🔮 Future Enhancements
+Future Enhancements
 Planned Features (Q1 2025)
 
     Mobile Apps (React Native)
@@ -496,7 +496,7 @@ Research Areas
     🎓 Subject-Specific Optimization (different strategies for Math vs. History)
     🌍 Multi-Language Support (Hindi, Spanish, French)
 
-🤝 Contributing
+Contributing
 
 We welcome contributions! Here's how:
 
