@@ -32,13 +32,15 @@ Challenge	Impact
 🔸 No Personalized Guidance	Students left to figure it all out alone
 
 The Gap: There is no intelligent system that learns from the student and automatically adjusts their routine based on behavioral patterns.
+
+
 Application Link : 
 
 URL: https://student-productivity-topaz.vercel.app
 
 Deployed on: Vercel (Edge Network)
 
-Video link
+Demo Video link :
 
 LINK : https://drive.google.com/file/d/1l1gKChpc8HNHocP6JQjN4TIcm6omvg8U/view?usp=sharing
 
@@ -63,11 +65,13 @@ graph LR
 
 Result: Transform any student into a high-performance learner with data-driven optimization.
 
-Documentation -
+Documentation :
+
 LINK : https://drive.google.com/file/d/1l1gKChpc8HNHocP6JQjN4TIcm6omvg8U/view?usp=sharing
 
 
 Key Innovations & Features
+
 📱💻 1. Cross-Platform Compatibility
 
 Innovation: Fully responsive design that adapts to any device.
