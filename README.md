@@ -5,7 +5,9 @@
 ## 📋 Table of Contents
 - [The Problem](#the-problem)
 - [Application Link](#application-link)
+- [Video link](#video-link)
 - [Our Solution](#our-solution)
+- [Documentation](#the-documentation)
 - [Key Innovations & Features](#key-innovations--features)
 - [Technology Stack](#technology-stack)
 - [Architecture Overview](#architecture-overview)
@@ -36,6 +38,10 @@ URL: https://student-productivity-topaz.vercel.app
 
 Deployed on: Vercel (Edge Network)
 
+Video link
+
+LINK : https://drive.google.com/file/d/1l1gKChpc8HNHocP6JQjN4TIcm6omvg8U/view?usp=sharing
+
 Our Solution
 
 An AI-powered productivity ecosystem that:
@@ -56,6 +62,11 @@ graph LR
     E --> A
 
 Result: Transform any student into a high-performance learner with data-driven optimization.
+
+Documentation -
+LINK : https://drive.google.com/file/d/1l1gKChpc8HNHocP6JQjN4TIcm6omvg8U/view?usp=sharing
+
+
 Key Innovations & Features
 📱💻 1. Cross-Platform Compatibility
 
