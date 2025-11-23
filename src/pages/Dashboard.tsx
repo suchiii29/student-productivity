@@ -1,4 +1,4 @@
-// src/pages/Dashboard.tsx - COMPLETE WITH FIXED CHART LABELS
+// src/pages/Dashboard.tsx - COMPLETE WITH FIXED ADD TASK
 import { useEffect, useState } from "react";
 import {
   Bar,
@@ -36,7 +36,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import AddTaskModal from "@/components/tasks/AddTaskModal";
 import AddLogModal from "@/components/AddLogModal";
-import { addTaskStore } from "@/lib/taskStore";
+import { addTaskStore, initTaskStore } from "@/lib/taskStore";
 
 interface RoutineLog {
   date: string;
@@ -76,6 +76,13 @@ const Dashboard: React.FC = () => {
       navigate("/login");
     }
   }, [isLoggedIn, navigate]);
+
+  // Initialize task store when user logs in
+  useEffect(() => {
+    if (uid) {
+      initTaskStore(uid);
+    }
+  }, [uid]);
 
   // Load routine logs for current user only
   useEffect(() => {
@@ -317,11 +324,32 @@ const Dashboard: React.FC = () => {
 
   const onAddTask = async (taskData: any) => {
     try {
-      await addTaskStore(taskData);
+      // Double-check user is logged in
+      if (!uid) {
+        alert("❌ Please log in to add tasks");
+        return;
+      }
+
+      // Ensure task store is initialized
+      initTaskStore(uid);
+
+      // Map the modal data to match addTaskStore expected format
+      const taskForStore = {
+        title: taskData.title,
+        description: taskData.description || "",
+        duration: taskData.duration || 60,
+        priority: taskData.priority || "Medium",
+        deadline: taskData.deadline || "",
+        category: taskData.category || "General",
+        status: taskData.status || "pending",
+      };
+      
+      await addTaskStore(taskForStore);
+      setAddTaskOpen(false);
       alert("✅ Task added successfully!");
     } catch (error) {
       console.error("Error adding task:", error);
-      alert("❌ Failed to add task");
+      alert("❌ Failed to add task: " + (error as Error).message);
     }
   };
 
