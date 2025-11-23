@@ -2,21 +2,21 @@
 
     Maximizing academic performance through personalized AI-driven schedules, deep behavioral analytics, and real-time focus optimization.
 
-📋 Table of Contents
-
-    The Problem
-    Our Solution
-    Key Innovations & Features
-    Technology Stack
-    Architecture Overview
-    AI Models & Integrity
-    Security & Privacy
-    Database Structure
-    Setup & Installation
-    Live Demo
-    Future Enhancements
-    Contributing
-    Acknowledgements
+## 📋 Table of Contents
+- [The Problem](#the-problem)
+- [Application Link](#application-link)
+- [Our Solution](#our-solution)
+- [Key Innovations & Features](#key-innovations--features)
+- [Technology Stack](#technology-stack)
+- [Architecture Overview](#architecture-overview)
+- [AI Models & Integrity](#ai-models--integrity)
+- [Security & Privacy](#security--privacy)
+- [Database Structure](#database-structure)
+- [Setup & Installation](#setup--installation)
+- [Live Demo](#live-demo)
+- [Future Enhancements](#future-enhancements)
+- [Contributing](#contributing)
+- [Acknowledgements](#acknowledgements)
 
 🎯 The Problem
 
@@ -30,6 +30,12 @@ Challenge	Impact
 🔸 No Personalized Guidance	Students left to figure it all out alone
 
 The Gap: There is no intelligent system that learns from the student and automatically adjusts their routine based on behavioral patterns.
+Application Link : 
+
+URL: https://student-productivity-topaz.vercel.app
+
+Deployed on: Vercel (Edge Network)
+
 💡 Our Solution
 
 An AI-powered productivity ecosystem that:
@@ -339,7 +345,12 @@ service cloud.firestore {
 }
 
 Key Principle: Zero-trust architecture—every request validated.
-💾 Database Structure
+💾 Database Structure(Images)
+<img width="1280" height="598" alt="image" src="https://github.com/user-attachments/assets/dd14734e-eb52-435f-bae8-bd0cdf02dfd4" />
+<img width="1280" height="598" alt="image" src="https://github.com/user-attachments/assets/b3f3df99-32ef-4d17-94fd-ea3f77e10aac" />
+<img width="1280" height="598" alt="image" src="https://github.com/user-attachments/assets/c49cc017-b07e-4ce6-a597-2d70ec4b3fc3" />
+
+
 Firestore Collections Schema
 javascript
 
