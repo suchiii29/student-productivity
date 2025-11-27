@@ -36,7 +36,7 @@ The Gap: There is no intelligent system that learns from the student and automat
 
 Application Link : 
 
-URL: https://student-productivity-topaz.vercel.app
+URL: https://student-productivity-2jnpsv95g-suchitraaradhya37-7101s-projects.vercel.app
 
 Deployed on: Vercel (Edge Network)
 
@@ -472,7 +472,7 @@ Build errors	Clear node_modules, reinstall
 🌐 Live Demo
 Production Deployment
 
-URL: https://student-productivity-topaz.vercel.app
+URL: https://student-productivity-2jnpsv95g-suchitraaradhya37-7101s-projects.vercel.app
 
 Deployed on: Vercel (Edge Network)
 
