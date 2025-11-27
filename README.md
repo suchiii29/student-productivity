@@ -67,7 +67,7 @@ Result: Transform any student into a high-performance learner with data-driven o
 
 Documentation :
 
-LINK : https://drive.google.com/file/d/1l1gKChpc8HNHocP6JQjN4TIcm6omvg8U/view?usp=sharing
+LINK : https://drive.google.com/file/d/1nmBnDvg3T5Z33qvSxEvOIAjY1dcHVFY5/view?usp=sharing
 
 
 Key Innovations & Features
