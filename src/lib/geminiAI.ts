@@ -1,12 +1,10 @@
 // src/lib/geminiAI.ts (SAFE QROQ VERSION)
 
 import OpenAI from "openai";
-
 const client = new OpenAI({
-  apiKey: import.meta.env.VITE_QROC_API_KEY,
-  baseURL: "https://api.qroq.ai/v1",
+apiKey: import.meta.env.VITE_GROQ_API_KEY,
+baseURL: "https://api.groq.com/openai/v1",
 });
-
 export interface AIRecommendation {
   title: string;
   description: string;

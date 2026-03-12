@@ -1,12 +1,13 @@
 // src/lib/aiRecommendationEngine.ts
 import OpenAI from "openai";
 
+
+
 const client = new OpenAI({
-  apiKey: import.meta.env.VITE_GROQ_API_KEY,
+  apiKey: import.meta.env.VITE_GROQ_API_KEY || "missing",
   baseURL: "https://api.groq.com/openai/v1",
   dangerouslyAllowBrowser: true,
 });
-
 export interface AIRecommendation {
   title: string;
   description: string;

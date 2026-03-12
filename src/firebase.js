@@ -17,7 +17,7 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 
-// ✅ Correct Realtime Database instance
+
 export const db = getDatabase(app);
 
 // ✅ Correct Firestore instance
